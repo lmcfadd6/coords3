@@ -123,12 +123,19 @@ class Angle:
 
     def __init__(self, ang, deg=False):
 
-        if deg:
-            self.deg = ang%360
-            self.rad = self.deg/180*np.pi
+        if ang is not None:
+
+            if deg:
+                self.deg = ang%360
+                self.rad = self.deg/180*np.pi
+            else:
+                self.rad = ang%(2*np.pi)
+                self.deg = self.rad*180/np.pi
+
         else:
-            self.rad = ang%(2*np.pi)
-            self.deg = self.rad*180/np.pi
+
+            self.deg = None
+            self.rad = None
 
     def __str__(self):
 
@@ -156,6 +163,11 @@ class Angle:
             return self.rad - 2*np.pi
 
 
+    def isNone(self):
+
+        if self.deg is None or self.rad is None:
+            return True
+        return False
 
 class RightAsc:
 
@@ -268,4 +280,15 @@ class Cart:
 class KeplerOrbit:
 
     def __init__(a, e, i, O=None, w=None, f=None, w_tilde=None):
-        pass
+        
+        self.a = a
+        self.e = e
+        self.i = Angle(i)
+        self.O = Angle(O)
+        self.w = Angle(w)
+        self.f = Angle(f)
+        self.w_tilde = Angle(w_tilde)
+
+        if self.w.isNone() and not(self.O.isNone() or self.w_tilde.isNone()):
+            self.w = self.w_tilde - self.O
+
