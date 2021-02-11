@@ -355,13 +355,17 @@ def orbit2State(a, e, f, mu):
     """
 
     f = Angle(f)
+
+    # Helper variables
     n = np.sqrt(mu/a**3)
     E = ef2E(e, f.rad)
 
+    # Position Components
     x = a*(np.cos(E.rad) - e)
     y = a*np.sqrt(1 - e**2)*np.sin(E.rad)
     z = 0
 
+    # Velocity Components
     v_x = -a*n*np.sin(E.rad)/(1 - e*np.cos(E.rad))
     v_y = a*np.sqrt(1 - e**2)*n*np.cos(E.rad)/(1 - e*np.cos(E.rad))
     v_z = 0
@@ -383,7 +387,9 @@ def rotateOrbitAngles(vector, w, i, O):
     Outputs:
     vector [Vector3d Obj] - Rotated vector
     """
+
     # Negative Rotation because of rotation matricies
+    # Rotation as given in the notes
     vector = vector.rotate(-w, "z")
     vector = vector.rotate(-i, "x")
     vector = vector.rotate(-O, "z")
