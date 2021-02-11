@@ -367,6 +367,8 @@ if __name__ == "__main__":
     Pluto = KeplerOrbit(39.48168677, 0.24880766, 17.14175, O=110.30347, w_tilde=224.06676)
 
     planets = [Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto]
+    colours = ["#947876", "#bf7d26", "#479ef5", "#fa0707", "#c79e0a", "#bdba04", "#02edd6", "#2200ff", "#a3986c"]
+    names = ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"]
     NO_OF_PLANETS = len(planets)
     import numpy as np
     import matplotlib.pyplot as plt
@@ -385,6 +387,7 @@ if __name__ == "__main__":
 
         data = np.array([data_x, data_y, data_z])
         return data
+
 
     def update(num, data, lines) :
 
@@ -412,8 +415,8 @@ if __name__ == "__main__":
 
     for pp, p in enumerate(planets):
         data[pp] = [make_planet(n, p)]
-        lines[pp] = [ax.plot(data[pp][0][0,0:1], data[pp][0][1,0:1], data[pp][0][2,0:1], 'o')[0]]
-
+        lines[pp] = [ax.plot(data[pp][0][0,0:1], data[pp][0][1,0:1], data[pp][0][2,0:1], \
+                c=colours[pp], marker='o', label=names[pp])[0]]
 
 
     # Setthe axes properties
@@ -428,7 +431,22 @@ if __name__ == "__main__":
 
     ax.set_title('3D Test')
 
+    ax.scatter([0], [0], [0], c="y", marker='o')
+
+    for pp, planet in enumerate(planets):
+        data_x = []
+        data_y = []
+        data_z = []
+        for f in np.linspace(0, 360, 1800):
+            r, v = orbit2HeliocentricState(planet, mu_sun, f)
+            data_x.append(r.x)
+            data_y.append(r.y)
+            data_z.append(r.z)
+
+        ax.plot(data_x, data_y, data_z, c=colours[pp])
+
     # Creating the Animation object
     ani = animation.FuncAnimation(fig, update_all, n, fargs=(data, lines),
                                   interval=50, blit=False)
+    plt.legend()
     plt.show()
