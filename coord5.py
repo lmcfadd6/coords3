@@ -1,7 +1,6 @@
 
 import numpy as np
 
-
 class Constants:
     """ An object defining constants
     """ 
@@ -19,8 +18,6 @@ class Constants:
 
         # Solar mass in kg
         self.M_sun = 1.989e30 #kg
-
-
 
 class Vector3D:
     """ Basic function defining 3D cartesian vectors in [x, y, z] form
@@ -106,8 +103,6 @@ class Vector3D:
 
         result = Vector3D(x, y, z)
         return result
-
-
 
 class Angle:
     """
@@ -208,8 +203,6 @@ class RightAsc:
         
         return self.angle
 
-
-
 class Cart:
     """
     A Cart(esian) object takes a geocentric vector defined as [x, y, z] [in meters], 
@@ -265,10 +258,28 @@ class Cart:
 
         return Cart(vect[0], vect[1], vect[2])
 
+##########################
+# New content begins here
+##########################
+
 
 class KeplerOrbit:
+    """ Define a Keplar orbit given 5 orbital parameters
 
-    def __init__(self, a, e, i, O=None, w=None, f=None, w_tilde=None):
+    Arguments:
+    a [Float] - Semimajor axis of the orbit [AU]
+    e [Float] - Eccentricity of the orbit
+    i [Float] - Inclination of the orbit [Degrees]
+    O [Float] - Longitude of the ascending node [Degrees]
+    w [Float] - Argument of perihelion [Degrees]
+    w_tilde [Float] - Longitude of perihelion [Degrees]
+
+    If w is not given, w may be calculated from O and w_tilde by:
+        w_tilde = O + w
+    """
+
+
+    def __init__(self, a, e, i, O=None, w=None, w_tilde=None):
 
         self.a = a
         self.e = e
@@ -277,14 +288,23 @@ class KeplerOrbit:
         self.w = Angle(w, deg=True)
         self.w_tilde = Angle(w_tilde, deg=True)
 
+        # If w is not given, calculate through w_tilde = O + w
         if self.w.isNone() and not(self.O.isNone() or self.w_tilde.isNone()):
             self.w = self.w_tilde - self.O
 
 
-
-
-
 def ef2E(e, f, debug=False):
+    """ Converts eccentricity, e, and the true anomaly, f, to eccentric
+    anomaly E
+
+    Inputs:
+    e [Float] - Eccentricity
+    f [Float] - True Anomaly [radians]
+    debug [Boolean] - If true, prints out return in terminal
+
+    Outputs:
+    E [Float] - Eccentric Anomaly [radians]
+    """
 
     f = Angle(f)
 
@@ -298,6 +318,16 @@ def ef2E(e, f, debug=False):
     return E
 
 def eE2f(e, E, debug=False):
+    """ Converts eccentricity, e, and eccentric anomaly, E, to the true anomaly, f
+
+    Inputs:
+    e [Float] - Eccentricity
+    E [Float] - Eccentric Anomaly [radians]
+    debug [Boolean] - If true, prints out return in terminal
+
+    Outputs:
+    f [Float] - True Anomaly [radians]
+    """
 
     E = Angle(E)
 
@@ -311,6 +341,18 @@ def eE2f(e, E, debug=False):
     return f
 
 def orbit2State(a, e, f, mu):
+    """ Takes orbital parameters a, e, and f and the standard gravitational parameter
+
+    Input:
+    a [Float] - Semimajor axis of the orbit [AU]
+    e [Float] - Eccentricity of the orbit
+    f [Float] - True Anomaly [radians]
+    mu [Float] - Standard Gravtiational Parameter of the orbit
+
+    Outputs:
+    r [Cart Obj] - Position coordinates of the orbit
+    v [Cart Obj] - Velocity coordinates of the orbit
+    """
 
     f = Angle(f)
     n = np.sqrt(mu/a**3)
@@ -330,7 +372,19 @@ def orbit2State(a, e, f, mu):
     return r, v
 
 def rotateOrbitAngles(vector, w, i, O):
+    """ Rotates a vector to a heliocentric ecliptic plane
 
+    Inputs:
+    vector [Vector3d Obj] - Vector to rotate
+    w [Angle Obj] - Argument of perihelion
+    i [Angle Obj] - Inclination of the orbit
+    O [Angle Obj] - Longitude of the ascending node
+
+    Outputs:
+    vector [Vector3d Obj] - Rotated vector
+    """
+
+    # Rotate by negative angle because of rotation matricies
     vector = vector.rotate(-w, "z")
     vector = vector.rotate(-i, "x")
     vector = vector.rotate(-O, "z")
@@ -338,6 +392,17 @@ def rotateOrbitAngles(vector, w, i, O):
     return vector
 
 def orbit2HeliocentricState(k_orbit, mu, f):
+    """ Rotate state vectors of position and velocity to heliocentric ecliptic plane
+
+    Inputs:
+    k_orbit [KeplerOrbit Obj] - orbital parameters to convert and rotate
+    mu [Float] - Standard Gravtiational Parameter of the orbit
+    f [Float] - True Anomaly [radians]
+
+    Outputs:
+    r [Cart Obj] - Rotated position coordinates of the orbit
+    v [Cart Obj] - Rotated velocity coordinates of the orbit
+    """
 
     r, v = orbit2State(k_orbit.a, k_orbit.e, f, mu)
 
@@ -348,13 +413,17 @@ def orbit2HeliocentricState(k_orbit, mu, f):
 
 if __name__ == "__main__":
 
-    ef2E(0.5, 1.6, debug=True)
-    eE2f(0.5, 1.07, debug=True)
+    ### Q1 Test
+    # Using the result of the first transformation in the second transformation
+    # should return the input of the first transformation
+    res = ef2E(0.5, 1.6, debug=True)
+    eE2f(0.5, res.rad, debug=True)
 
+    # If mass of the planets is 0:
     c = Constants()
-
     mu_sun = c.G*c.M_sun
 
+    # Define Keplar Orbit Objects from table
     #(a, e, i, O=None, w=None, f=None, w_tilde=None)
     Mercury = KeplerOrbit(0.38709893, 0.20563069, 7.00487, O=48.33167, w_tilde=77.45645)
     Venus = KeplerOrbit(0.72333199, 0.00677323, 3.39471, O=76.68069, w_tilde=131.53298)
@@ -367,19 +436,27 @@ if __name__ == "__main__":
     Pluto = KeplerOrbit(39.48168677, 0.24880766, 17.14175, O=110.30347, w_tilde=224.06676)
 
     # https://ssd.jpl.nasa.gov/?sb_elem
+    # Epoch J2000
     Ceres = KeplerOrbit(2.7653485, 0.07913825,  10.58682,  w=72.58981,  O=80.39320)
-
     Halley = KeplerOrbit(0.58597811, 0.96714291, 162.26269, w=111.33249, O=58.42008)
 
+    # Extra information for plotting
     planets = [Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, Ceres, Halley]
     colours = ["#947876", "#bf7d26", "#479ef5", "#fa0707", "#c79e0a", "#bdba04", "#02edd6", "#2200ff", "#a3986c", "#030303", "#0aff78"]
     names = ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto", "Ceres", "Halley"]
     NO_OF_PLANETS = len(planets)
+
+    # Animation Imports
     import numpy as np
     import matplotlib.pyplot as plt
     import mpl_toolkits.mplot3d.axes3d as p3
     import matplotlib.animation as animation
 
+    # The following animation code was taken from various stack overflow forums and from the 
+    # example given on the matplotlib page
+    # https://stackoverflow.com/questions/41602588/matplotlib-3d-scatter-animations
+
+    # Helper function - Organizes all data of an orbit
     def make_planet(n, planet):
         data_x = []
         data_y = []
@@ -393,13 +470,14 @@ if __name__ == "__main__":
         data = np.array([data_x, data_y, data_z])
         return data
 
-
+    # Updates a single planet
     def update(num, data, lines) :
 
         lines.set_data(data[0:2, num-1:num])
         lines.set_3d_properties(data[2,num-1:num])
         return lines
 
+    # Updates all planets
     def update_all(num, data, lines):
 
         l = [None]*NO_OF_PLANETS
@@ -409,7 +487,6 @@ if __name__ == "__main__":
 
         return l
 
-    # Attach 3D axis to the figure
     fig = plt.figure()
     ax = p3.Axes3D(fig)
 
@@ -418,6 +495,7 @@ if __name__ == "__main__":
     data = [None]*NO_OF_PLANETS
     lines = [None]*NO_OF_PLANETS
 
+    # Generate planet lines
     for pp, p in enumerate(planets):
         data[pp] = [make_planet(n, p)]
         lines[pp] = [ax.plot(data[pp][0][0,0:1], data[pp][0][1,0:1], data[pp][0][2,0:1], \
@@ -426,18 +504,19 @@ if __name__ == "__main__":
 
     # Setthe axes properties
     ax.set_xlim3d([-5.0, 5.0])
-    ax.set_xlabel('X')
+    ax.set_xlabel('X [AU]')
 
     ax.set_ylim3d([-5.0, 5.0])
-    ax.set_ylabel('Y')
+    ax.set_ylabel('Y [AU]')
 
     ax.set_zlim3d([-5.0, 5.0])
-    ax.set_zlabel('Z')
+    ax.set_zlabel('Z [AU]')
 
-    ax.set_title('3D Test')
+    ax.set_title('Kepler Orbits')
 
-    ax.scatter([0], [0], [0], c="y", marker='o')
+    ax.scatter([0], [0], [0], c="y", marker='o', label="Sun")
 
+    # Make cts line orbits
     for pp, planet in enumerate(planets):
         data_x = []
         data_y = []
