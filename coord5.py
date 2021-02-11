@@ -383,8 +383,7 @@ def rotateOrbitAngles(vector, w, i, O):
     Outputs:
     vector [Vector3d Obj] - Rotated vector
     """
-
-    # Rotate by negative angle because of rotation matricies
+    # Negative Rotation because of rotation matricies
     vector = vector.rotate(-w, "z")
     vector = vector.rotate(-i, "x")
     vector = vector.rotate(-O, "z")
@@ -437,8 +436,9 @@ if __name__ == "__main__":
 
     # https://ssd.jpl.nasa.gov/?sb_elem
     # Epoch J2000
+    # Halley gives q instead of a
     Ceres = KeplerOrbit(2.7653485, 0.07913825,  10.58682,  w=72.58981,  O=80.39320)
-    Halley = KeplerOrbit(0.58597811, 0.96714291, 162.26269, w=111.33249, O=58.42008)
+    Halley = KeplerOrbit(0.58597811/(1-0.96714291), 0.96714291, 162.26269, w=111.33249, O=58.42008)
 
     # Extra information for plotting
     planets = [Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune, Pluto, Ceres, Halley]
